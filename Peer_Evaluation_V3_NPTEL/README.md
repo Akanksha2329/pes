@@ -1,10 +1,10 @@
-# 🎓 Peer Evaluation System
+﻿# ðŸŽ“ Peer Evaluation System
 
 Peer Evaluation System is an open-source web application currently in development, built using the MERN stack (MongoDB, Express.js, React, Node.js). Our goal is to simplify and enhance the peer evaluation process for academic courses through a modern, user-friendly platform.
 
-## 📦 Backend
+## ðŸ“¦ Backend
 
-### ▶️ How to Run the Backend
+### â–¶ï¸ How to Run the Backend
 
 1. Navigate to the backend folder:
    ```bash
@@ -29,16 +29,27 @@ Peer Evaluation System is an open-source web application currently in developmen
 
 > The backend runs on **port 5000** by default.
 
-### 📚 Student APIs
+### ðŸ“š Student APIs
 
 For details about student-related API endpoints, check:  
 [`backend/student_api_endpoints.md`](./backend/student_api_endpoints.md)
 
+### Thunder Testing
+
+- Primary flow: [`backend/testing/THUNDER_FLOW.md`](./backend/testing/THUNDER_FLOW.md)
+- Sample payloads/users: [`backend/testing/SAMPLE_DATA.md`](./backend/testing/SAMPLE_DATA.md)
+- Quick checks: [`backend/testing/REGRESSION_CHECKLIST.md`](./backend/testing/REGRESSION_CHECKLIST.md)
+
+### Contribution-Friendly Testing
+
+Before raising a PR or demoing progress, run the quick checklist and keep endpoint results/screenshots.
+This gives clear evidence of contribution quality and feature stability.
+
 ---
 
-## 💻 Frontend
+## ðŸ’» Frontend
 
-### ▶️ How to Run the Frontend
+### â–¶ï¸ How to Run the Frontend
 
 1. Navigate to the frontend folder:
    ```bash
@@ -64,7 +75,7 @@ For details about student-related API endpoints, check:
 
 ---
 
-## 🛠 Tech Stack
+## ðŸ›  Tech Stack
 
 - **Frontend:** React + TypeScript + Tailwind CSS
 - **Backend:** Node.js + Express.js
@@ -73,13 +84,13 @@ For details about student-related API endpoints, check:
 
 ---
 
-## 🧪 Status
+## ðŸ§ª Status
 
-🚧 Currently under active development.
+ðŸš§ Currently under active development.
 
 ---
 
-## 📬 Contributing
+## ðŸ“¬ Contributing
 
 Contributions, feedback, and suggestions are welcome!  
 Feel free to fork the repo, create a branch, and submit a pull request.
