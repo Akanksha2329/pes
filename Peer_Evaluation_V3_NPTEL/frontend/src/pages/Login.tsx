@@ -2,9 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiMoon, FiSun } from 'react-icons/fi';
-import axios from 'axios';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
+import { api } from '../lib/api';
 
 const currentPalette = {
   'accent-purple': '#7c3aed',
@@ -17,6 +15,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,8 +25,25 @@ export default function Login() {
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
-  const showMessage = (message: string) => {
-    alert(message); // Replace with modal or toast for better UX
+  const ErrorDialog = () => {
+    if (!showDialog) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div className="bg-white rounded-2xl shadow-xl px-8 py-8 flex flex-col items-center min-w-[320px]">
+          <svg width={56} height={56} viewBox="0 0 24 24" fill="none" className="mb-2">
+            <circle cx="12" cy="12" r="12" fill="#f87171" />
+            <path d="M15 9l-6 6M9 9l6 6" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div className="text-lg font-semibold text-center mb-4 text-red-600">{dialogMessage}</div>
+          <button
+            onClick={() => setShowDialog(false)}
+            className="bg-purple-700 text-white px-4 py-2 rounded-3xl w-full"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -34,8 +51,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        `http://localhost:${PORT}/api/auth/login`,
+      const res = await api.post(
+        `/api/auth/login`,
         { email, password },
         { withCredentials: true }
       );
@@ -48,17 +65,18 @@ export default function Login() {
       localStorage.setItem('userEmail', user.email);
       localStorage.setItem('isTA', user.isTA ? 'true' : 'false');
 
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'teacher') navigate('/teacher');
-      else navigate('/dashboard');
-
 
       if (role === 'admin') navigate('/admin');
       else if (role === 'teacher') navigate('/teacher');
       else if (role === 'ta') navigate('/ta');
       else navigate('/dashboard');
-    } catch (err) {
-      showMessage('Login failed. Please check your credentials.');
+    } catch (err: any) {
+      const backendMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        'Login failed. Please check your credentials.';
+      setDialogMessage(backendMessage);
+      setShowDialog(true);
       console.error(err);
     } finally {
       setLoading(false);
@@ -67,6 +85,7 @@ export default function Login() {
 
   return (
     <div className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-500 font-[Poppins] ${darkMode ? 'dark bg-slate-900' : 'bg-gradient-to-br from-indigo-100 to-purple-200'}`}>
+      <ErrorDialog />
       {/* Decorative blobs */}
       <div className="absolute w-72 h-72 bg-indigo-300 opacity-30 rounded-full mix-blend-multiply filter blur-2xl animate-blob -top-20 -left-20 dark:bg-indigo-800"></div>
       <div className="absolute w-72 h-72 bg-purple-300 opacity-30 rounded-full mix-blend-multiply filter blur-2xl animate-blob animation-delay-2000 -bottom-20 -right-10 dark:bg-purple-800"></div>

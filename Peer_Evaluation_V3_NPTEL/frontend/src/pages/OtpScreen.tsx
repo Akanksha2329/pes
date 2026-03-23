@@ -1,34 +1,59 @@
 // src/pages/OtpScreen.tsx
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import axios from 'axios';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
+import { api } from '../lib/api';
 
 export default function OtpScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { name ,email, password, role} = location.state || {};
   const [otp, setOtp] = useState('');
-  const [error, setError] = useState('');
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('');
+  const [dialogAction, setDialogAction] = useState<'retry' | 'login'>('retry');
+
+  const ErrorDialog = () => {
+    if (!showDialog) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+        <div className="bg-white rounded-2xl shadow-xl px-8 py-8 flex flex-col items-center min-w-[320px]">
+          <svg width={56} height={56} viewBox="0 0 24 24" fill="none" className="mb-2">
+            <circle cx="12" cy="12" r="12" fill="#f87171" />
+            <path d="M15 9l-6 6M9 9l6 6" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div className="text-lg font-semibold text-center mb-4 text-red-600">{dialogMessage}</div>
+          <div className="w-full flex gap-3">
+            <button
+              onClick={() => setShowDialog(false)}
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded-3xl w-full"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => {
+                setShowDialog(false);
+                if (dialogAction === 'login') navigate('/login');
+              }}
+              className="bg-purple-700 text-white px-4 py-2 rounded-3xl w-full"
+            >
+              {dialogAction === 'login' ? 'Login' : 'Retry'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   
 
   const handleVerify = async () => {
     try {
-      console.log('Verifying OTP with:', { email, otp });
-      console.log('Registering with:', {
-          name,
-          email,
-          password,
-          role
-        });
-      const otpRes = await axios.post(`http://localhost:${PORT}/api/auth/verify`, {
+      const otpRes = await api.post('/api/auth/verify', {
         email,
         otp,
       });
 
       if (otpRes.data.verified) {
-        const registerRes = await axios.post(`http://localhost:${PORT}/api/auth/register`, {
+        const registerRes = await api.post('/api/auth/register', {
           name,
           email,
           password,
@@ -48,17 +73,27 @@ export default function OtpScreen() {
         else if (userRole === 'ta') navigate('/ta');
         else navigate('/dashboard');
       } else {
-        setError('Invalid OTP');
+        setDialogMessage('Invalid OTP');
+        setDialogAction('retry');
+        setShowDialog(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Verification or registration failed');
+      const backendMessage =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        'Verification or registration failed';
+      const lowerMessage = String(backendMessage).toLowerCase();
+      setDialogMessage(backendMessage);
+      setDialogAction(lowerMessage.includes('already exists') ? 'login' : 'retry');
+      setShowDialog(true);
     }
   };
 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-300 via-pink-300 to-red-300">
+      <ErrorDialog />
       <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md text-center animate-fadeIn">
         <button
         onClick={() => navigate('/register')}
@@ -77,8 +112,6 @@ export default function OtpScreen() {
           maxLength={6}
           className="w-full text-center tracking-widest text-xl px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition"
         />
-
-        {error && <p className="text-red-500 mt-2 text-sm">{error}</p>}
 
         <button
           onClick={handleVerify}

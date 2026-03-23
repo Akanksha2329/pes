@@ -1,10 +1,8 @@
 // src/pages/ResetPassword.tsx
 import { useState, useEffect,type SetStateAction } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import axios from 'axios';
 import { FiMoon, FiSun } from 'react-icons/fi';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
+import { api } from '../lib/api';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -91,7 +89,7 @@ export default function ResetPassword() {
 
     try {
       setIsSubmitting(true);
-      await axios.post(`http://localhost:${PORT}/api/auth/reset-password`, {
+      await api.post('/api/auth/reset-password', {
         token,
         newPassword: password,
       });

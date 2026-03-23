@@ -2,9 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState, type SetStateAction } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FiMoon, FiSun } from 'react-icons/fi';
-import axios from 'axios';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
+import { api } from '../lib/api';
 
 const currentPalette = {
   'accent-purple': '#7c3aed',
@@ -109,7 +107,7 @@ export default function Register() {
     try {
       setIsSubmitting(true);
       showMessage('Sending OTP...');
-      await axios.post(`http://localhost:${PORT}/api/auth/send`, { email });
+      await api.post('/api/auth/send', { email });
       navigate('/otp', { state: { email, password, role, name } });
     } catch (err: any) {
       showMessage(err?.response?.data?.message || 'Registration failed', 'error');

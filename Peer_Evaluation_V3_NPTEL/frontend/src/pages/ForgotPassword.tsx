@@ -1,10 +1,8 @@
 // src/pages/ForgotPassword.tsx
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState,type SetStateAction} from 'react';
-import axios from 'axios';
 import { FiMoon, FiSun } from 'react-icons/fi';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
+import { api } from '../lib/api';
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -114,7 +112,7 @@ const DialogBox = ({
 
     try {
       setIsSending(true); // show "Sending..."
-      await axios.post(`http://localhost:${PORT}/api/auth/forgot-password`, { email });
+      await api.post('/api/auth/forgot-password', { email });
 
       showMessage('Password reset link sent to your email.', 'success');
 
@@ -137,7 +135,7 @@ const DialogBox = ({
     setMessage('');
 
     try {
-      const res = await axios.post(`http://localhost:${PORT}/api/auth/forgot-password`, { email });
+      const res = await api.post('/api/auth/forgot-password', { email });
 
       setMessage('Password reset link sent to your email.');
       setMessageType('success');

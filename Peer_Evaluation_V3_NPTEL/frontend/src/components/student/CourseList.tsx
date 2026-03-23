@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
+import { api } from '../../lib/api';
 
 type Course = {
   _id: string;
@@ -15,9 +13,7 @@ type Props = {
 };
 
 const fetchCourses = async (): Promise<Course[]> => {
-  const { data } = await axios.get(`http://localhost:${PORT}/api/student/courses`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-  });
+  const { data } = await api.get('/api/student/courses');
   return data.courses;
 };
 
@@ -61,22 +57,37 @@ const CourseList = ({ onSelectCourse, darkMode }: Props) => {
   if (error) return <div className={`text-center p-4 ${darkMode ? "text-red-400" : "text-red-600"}`}>Error loading courses.</div>;
 
   return (
-    <div className="grid grid-cols-fill-minmax-300 gap-8 relative z-10 sm:grid-cols-1 sm:gap-5">
-      {courses && courses.map((course) => (
-        <div key={course._id} className={commonCardClasses}>
-          <div className={commonCardBeforeClasses} style={{ background: cardBeforeGradient }}></div>
-          <h3 className="mb-4 text-xl font-bold tracking-tight">{course.name}</h3>
-          <p className="text-base leading-relaxed mb-4">{course.code}</p>
-          <button
-            className={`${commonButtonClasses}`}
-            onClick={() => onSelectCourse(course._id)}
-            style={{ background: buttonBg }}
-          >
-            <span className={commonButtonBeforeClasses}></span>
-            View Exams
-          </button>
+    <div className="space-y-5 relative z-10">
+      <div className={`rounded-2xl p-6 border ${darkMode ? "bg-[#1A1A2E] border-gray-700" : "bg-white border-black/10"}`}>
+        <h2 className={`text-2xl font-bold tracking-tight ${darkMode ? "text-white" : "text-gray-900"}`}>My Courses</h2>
+        <p className={`mt-2 text-sm ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+          Select a course to view upcoming exams and submit answers.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-fill-minmax-300 gap-8 sm:grid-cols-1 sm:gap-5">
+        {courses && courses.map((course) => (
+          <div key={course._id} className={commonCardClasses}>
+            <div className={commonCardBeforeClasses} style={{ background: cardBeforeGradient }}></div>
+            <h3 className="mb-4 text-xl font-bold tracking-tight">{course.name}</h3>
+            <p className="text-base leading-relaxed mb-4">{course.code}</p>
+            <button
+              className={`${commonButtonClasses}`}
+              onClick={() => onSelectCourse(course._id)}
+              style={{ background: buttonBg }}
+            >
+              <span className={commonButtonBeforeClasses}></span>
+              View Exams
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {courses && courses.length === 0 && (
+        <div className={`rounded-2xl p-6 border text-center ${darkMode ? "bg-[#1A1A2E] border-gray-700 text-gray-300" : "bg-white border-black/10 text-gray-600"}`}>
+          No enrolled courses found.
         </div>
-      ))}
+      )}
     </div>
   );
 };

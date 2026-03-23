@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { api } from '../../lib/api';
 import { useState, useRef, useEffect } from 'react';
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
 
 type Exam = {
   _id: string;
@@ -21,12 +19,7 @@ type Props = {
 };
 
 const fetchExams = async (courseId: string): Promise<Exam[]> => {
-  const { data } = await axios.get(
-    `http://localhost:${PORT}/api/student/courses/${courseId}/exams`,
-    {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    }
-  );
+  const { data } = await api.get(`/api/student/courses/${courseId}/exams`);
   return data.exams;
 };
 
@@ -94,16 +87,9 @@ const CourseExams = ({ courseId, onBack, darkMode }: Props) => {
       const formData = new FormData();
       formData.append('pdf', selectedFile);
       formData.append('examId', examId);
-      await axios.post(
-        `http://localhost:${PORT}/api/student/submit-answer`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      await api.post('/api/student/submit-answer', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setUploadMsg('Submission successful!');
       setActiveExamId(null);
       setSelectedFile(null);
@@ -122,8 +108,7 @@ const CourseExams = ({ courseId, onBack, darkMode }: Props) => {
     const collapseBtn = document.querySelector('button:has(svg.text-2xl)') as HTMLButtonElement;
     if (collapseBtn) collapseBtn.click();
     try {
-      const res = await axios.get(`http://localhost:${PORT}/api/student/question-paper/${exam._id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      const res = await api.get(`/api/student/question-paper/${exam._id}`, {
         responseType: 'blob',
       });
       const blobUrl = URL.createObjectURL(res.data);

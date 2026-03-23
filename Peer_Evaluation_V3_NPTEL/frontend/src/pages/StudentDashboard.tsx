@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    FiMenu, FiLogOut, FiHome, FiBook, FiUsers, FiCheckCircle, FiUploadCloud, FiUser, FiSun, FiMoon,
+    FiMenu, FiLogOut, FiHome, FiBook, FiUsers, FiCheckCircle, FiUploadCloud, FiUser, FiSun, FiMoon, FiArrowLeft
 } from 'react-icons/fi';
 import { motion } from "framer-motion";
-import axios from 'axios';
+import { api } from "../lib/api";
 
 import ProfileSection from "../components/student/ProfileSection";
 import CourseList from "../components/student/CourseList";
@@ -13,8 +13,6 @@ import ViewMarks from "../components/student/ViewMarks";
 import DashboardOverview from "../components/student/DashboardOverview";
 import PeerEvaluationsPending from "../components/student/PeerEvaluationsPending";
 import EnrollmentSection from "../components/student/EnrollmentSection";
-
-const PORT = import.meta.env.VITE_BACKEND_PORT || 5000;
 
 const lightPalette = {
     'bg-primary': '#FFFBF6', 'bg-secondary': '#FFFAF2',
@@ -48,6 +46,7 @@ const StudentDashboard = () => {
     const [logoutDialog, setLogoutDialog] = useState(false);
     const [showProfilePopup, setShowProfilePopup] = useState(false);
     const [profileData, setProfileData] = useState({ name: "", email: "", role: "", isTA: false });
+    const [navHistory, setNavHistory] = useState<{ activeMenu: string; selectedCourseId: string | null }[]>([]);
 
     const navigate = useNavigate();
     const currentPalette = getColors(darkMode);
@@ -60,9 +59,9 @@ const StudentDashboard = () => {
     useEffect(() => {
         if (!token) navigate('/');
         else {
-            axios.get(`http://localhost:${PORT}/api/student/profile`, {
-                headers: { Authorization: `Bearer ${token}` },
-            }).then(res => setProfileData(res.data)).catch(console.error);
+            api.get('/api/student/profile')
+                .then(res => setProfileData(res.data))
+                .catch(console.error);
         }
     }, [token, navigate]);
 
@@ -71,18 +70,46 @@ const StudentDashboard = () => {
         navigate("/login");
     };
 
+    const goToMenu = (menu: string, nextCourseId: string | null = null) => {
+        setNavHistory(prev => [...prev, { activeMenu, selectedCourseId }]);
+        setActiveMenu(menu);
+        setSelectedCourseId(nextCourseId);
+    };
+
+    const goBack = () => {
+        if (navHistory.length === 0) return;
+        const previous = navHistory[navHistory.length - 1];
+        setNavHistory(prev => prev.slice(0, -1));
+        setActiveMenu(previous.activeMenu);
+        setSelectedCourseId(previous.selectedCourseId);
+    };
+
     const renderContent = () => {
         switch (activeMenu) {
-            case 'dashboard': return <DashboardOverview darkMode={darkMode} />;
+            case 'dashboard':
+                return (
+                    <DashboardOverview
+                        darkMode={darkMode}
+                        onNavigate={(menu) => {
+                            goToMenu(menu, null);
+                        }}
+                    />
+                );
             case 'courses':
                 return selectedCourseId ? (
                     <CourseExams
                         courseId={selectedCourseId}
-                        onBack={() => setSelectedCourseId(null)}
+                        onBack={goBack}
                         darkMode={darkMode}
                     />
                 ) : (
-                    <CourseList onSelectCourse={(id: string) => setSelectedCourseId(id)} darkMode={darkMode} />
+                    <CourseList
+                        onSelectCourse={(id: string) => {
+                            setNavHistory(prev => [...prev, { activeMenu, selectedCourseId }]);
+                            setSelectedCourseId(id);
+                        }}
+                        darkMode={darkMode}
+                    />
                 );
             case 'enrollment': return <EnrollmentSection darkMode={darkMode} />;
             case 'peerEvaluation': return <PeerEvaluationsPending darkMode={darkMode} />;
@@ -113,7 +140,7 @@ const StudentDashboard = () => {
                             { key: 'viewMarks', icon: FiCheckCircle, label: 'View Marks' },
                             { key: 'profile', icon: FiUser, label: 'Profile' },
                         ].map(({ key, icon: Icon, label }) => (
-                            <li key={key} onClick={() => { setActiveMenu(key); setSelectedCourseId(null); }}
+                            <li key={key} onClick={() => goToMenu(key, null)}
                                 className="cursor-pointer flex items-center px-4 py-2 rounded-lg transition-all duration-200"
                                 style={{ color: currentPalette['text-sidebar-dark'] }}>
                                 <Icon className={`${showSidebar ? 'mr-3 text-xl' : 'text-3xl'}`} />
@@ -170,7 +197,7 @@ const StudentDashboard = () => {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <button
-                                        onClick={() => { setActiveMenu('profile'); setSelectedCourseId(null); setShowProfilePopup(false); }}
+                                        onClick={() => { goToMenu('profile', null); setShowProfilePopup(false); }}
                                         className="px-4 py-2 rounded-lg font-semibold shadow-md"
                                         style={{ backgroundColor: currentPalette['accent-lilac'], color: currentPalette['accent-purple'] }}
                                     >
@@ -191,6 +218,23 @@ const StudentDashboard = () => {
                     </div>
                 </div>
                 <div className="w-full max-w-7xl mx-auto">
+                    {navHistory.length > 0 && activeMenu !== 'dashboard' && (
+                        <div className="mb-4">
+                            <button
+                                onClick={goBack}
+                                className="h-11 px-4 rounded-full flex items-center gap-2 border-2 shadow-md"
+                                style={{
+                                    backgroundColor: currentPalette['accent-light-purple'],
+                                    borderColor: currentPalette['accent-purple'],
+                                    color: currentPalette['text-dark'],
+                                }}
+                                title="Go back"
+                            >
+                                <FiArrowLeft className="w-5 h-5" />
+                                <span className="font-semibold">Back</span>
+                            </button>
+                        </div>
+                    )}
                     {renderContent()}
                 </div>
             </div>
